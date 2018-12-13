@@ -2,6 +2,7 @@ from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext
 import sys
 import setuptools
+import os
 
 __version__ = '0.0.1'
 
@@ -21,15 +22,32 @@ class get_pybind_include(object):
         return pybind11.get_include(self.user)
 
 
+parmetis_dir = '/home/wechsung/bin/firedrake-dev-20181123-mkl/src/petsc/linux-gnu-c-opt/externalpackages/git.parmetis/'
+parmetis_inc_dir = os.path.join(parmetis_dir,'include')
+parmetis_lib_dir = os.path.join(parmetis_dir,'petsc-build/libparmetis')
+
+mpi_dir = '/home/wechsung/bin/openmpi-2.1.1/build/'
+mpi_inc_dir = os.path.join(mpi_dir, 'include')
+mpi_lib_dir = os.path.join(mpi_dir, 'lib')
+
+metis_dir = '/home/wechsung/bin/firedrake-dev-20181123-mkl/src/petsc/linux-gnu-c-opt/externalpackages/git.metis/petsc-build/'
+metis_inc_dir = os.path.join(metis_dir,'include')
+
 ext_modules = [
     Extension(
-        'python_example',
+        'parmetis4py',
         ['src/main.cpp'],
         include_dirs=[
             # Path to pybind11 headers
             get_pybind_include(),
-            get_pybind_include(user=True)
+            get_pybind_include(user=True),
+            parmetis_inc_dir,
+            mpi_inc_dir,
+            metis_inc_dir
         ],
+        libraries=['parmetis'],#,'mpich','opa','mpl','rt','pthread'], #TODO
+        library_dirs=[parmetis_lib_dir, mpi_lib_dir],
+        runtime_library_dirs=[parmetis_lib_dir, mpi_lib_dir],
         language='c++'
     ),
 ]
@@ -83,19 +101,18 @@ class BuildExt(build_ext):
             opts.append(cpp_flag(self.compiler))
             if has_flag(self.compiler, '-fvisibility=hidden'):
                 opts.append('-fvisibility=hidden')
-        elif ct == 'msvc':
-            opts.append('/DVERSION_INFO=\\"%s\\"' % self.distribution.get_version())
+            elif ct == 'msvc':
+                opts.append('/DVERSION_INFO=\\"%s\\"' % self.distribution.get_version())
         for ext in self.extensions:
             ext.extra_compile_args = opts
         build_ext.build_extensions(self)
 
 setup(
-    name='python_example',
+    name='parmetis4py',
     version=__version__,
-    author='Sylvain Corlay',
-    author_email='sylvain.corlay@gmail.com',
-    url='https://github.com/pybind/python_example',
-    description='A test project using pybind11',
+    author='Florian Wechsung',
+    author_email='wechsung@maths.ox.ac.uk',
+    description='Simple bindings for parmetis',
     long_description='',
     ext_modules=ext_modules,
     install_requires=['pybind11>=2.2'],
