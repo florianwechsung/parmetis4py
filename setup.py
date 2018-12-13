@@ -22,16 +22,30 @@ class get_pybind_include(object):
         return pybind11.get_include(self.user)
 
 
-parmetis_dir = '/home/wechsung/bin/firedrake-dev-20181123-mkl/src/petsc/linux-gnu-c-opt/externalpackages/git.parmetis/'
-parmetis_inc_dir = os.path.join(parmetis_dir,'include')
-parmetis_lib_dir = os.path.join(parmetis_dir,'petsc-build/libparmetis')
+try:
+    petsc_dir = os.environ['PETSC_DIR']
+except KeyError:
+    raise RuntimeError("Please set PETSC_DIR environment variable.")
+try:
+    petsc_arch = os.environ['PETSC_ARCH']
+except KeyError:
+    raise RuntimeError("Please set PETSC_ARCH environment variable.")
 
-mpi_dir = '/home/wechsung/bin/openmpi-2.1.1/build/'
+
+
+petsc_build_dir = os.path.join(petsc_dir, petsc_arch)
+parmetis_inc_dir = os.path.join(petsc_build_dir, 'include')
+parmetis_lib_dir = os.path.join(petsc_build_dir, 'lib')
+
+metis_inc_dir = os.path.join(petsc_build_dir, 'include')
+
+try:
+    mpi_dir = os.environ['MPI_DIR']
+except KeyError:
+    raise RuntimeError("Please set MPI_DIR environment variable (will look for $MPI_DIR/include and $MPI_DIR/lib).")
 mpi_inc_dir = os.path.join(mpi_dir, 'include')
 mpi_lib_dir = os.path.join(mpi_dir, 'lib')
 
-metis_dir = '/home/wechsung/bin/firedrake-dev-20181123-mkl/src/petsc/linux-gnu-c-opt/externalpackages/git.metis/petsc-build/'
-metis_inc_dir = os.path.join(metis_dir,'include')
 
 ext_modules = [
     Extension(
